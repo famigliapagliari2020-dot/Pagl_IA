@@ -25,20 +25,18 @@ st.caption("Chat protetta e privata collegata al modello GGUF.")
 
 # Percorso esatto del tuo modello privato su Hugging Face
 model_id = "Username97482/Pagl_IA_gguf"
-model_file = "llama-3-8b-Q4_K_M.gguf" # Ho inserito i trattini standard generati da Unsloth
+model_file = "llama-3-8b-Q4_K_M.gguf"
 
-# RECUPERO DEL TOKEN: Fondamentale per i modelli privati!
+# RECUPERO DEL TOKEN: Recupera la chiave dai Secrets di Streamlit
 hf_token = st.secrets["HF_TOKEN"]
 
-# CONFIGURAZIONE CLIENT: Passiamo esplicitamente il token e puntiamo al file GGUF
-client = InferenceClient(
-    model=f"https://huggingface.co{model_id}",
-    token=hf_token
-)
+# CONFIGURAZIONE CLIENT CORRETTA:
+# Passiamo solo il token. Il modello specifico verrà indicato direttamente nella chiamata.
+client = InferenceClient(token=hf_token)
 
 # Gestione della memoria dei messaggi della chat
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Ciao! Ora sono configurato per leggere il tuo modello privato. Come posso aiutarti oggi?"}]
+    st.session_state.messages = [{"role": "assistant", "content": "Ciao! Ora la connessione è configurata correttamente. Come posso aiutarti oggi?"}]
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
@@ -52,12 +50,13 @@ if prompt := st.chat_input():
         full_response = ""
         
         try:
-            # Invio della richiesta all'API passandogli il file GGUF specifico
+            # Invio della richiesta passando il model_id e il file GGUF specifico
             for message in client.chat_completion(
-                st.session_state.messages, 
+                messages=st.session_state.messages,
+                model=model_id,
                 max_tokens=512, 
                 stream=True,
-                extra_body={"model_file": model_file} # Dice a Hugging Face quale file prendere dentro la cartella
+                extra_body={"model_file": model_file}
             ):
                 token = message.choices.delta.content
                 if token:
