@@ -19,20 +19,26 @@ if not st.session_state["authenticated"]:
             st.error("⚠️ Password errata!")
     st.stop()
 
-# 2. Interfaccia della Chat (visibile solo se la password è corretta)
+# Configurazione titolo dell'applicazione web
 st.title("🤖 La Mia IA Privata")
-st.caption("Chat protetta per me e i miei amici.")
+st.caption("Chat protetta e privata collegata al modello GGUF.")
 
-# Inserisci il percorso del tuo modello GGUF privato su Hugging Face
+# Percorso esatto del tuo modello privato su Hugging Face
 model_id = "Username97482/Pagl_IA_gguf"
-model_file = "llama-3-8b.Q4_K_M.gguf"
+model_file = "llama-3-8b-Q4_K_M.gguf" # Ho inserito i trattini standard generati da Unsloth
 
-# Recupera in modo sicuro il token che inseriremo nel pannello di Streamlit
+# RECUPERO DEL TOKEN: Fondamentale per i modelli privati!
 hf_token = st.secrets["HF_TOKEN"]
-client = InferenceClient(model=f"{model_id}/{model_file}", token=hf_token)
 
+# CONFIGURAZIONE CLIENT: Passiamo esplicitamente il token e puntiamo al file GGUF
+client = InferenceClient(
+    model=f"https://huggingface.co{model_id}",
+    token=hf_token
+)
+
+# Gestione della memoria dei messaggi della chat
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Ciao! Come posso aiutarti oggi?"}]
+    st.session_state.messages = [{"role": "assistant", "content": "Ciao! Ora sono configurato per leggere il tuo modello privato. Come posso aiutarti oggi?"}]
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
@@ -41,19 +47,24 @@ if prompt := st.chat_input():
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
     
-    # Richiesta al modello su Hugging Face
     with st.chat_message("assistant"):
         response_placeholder = st.empty()
         full_response = ""
         
         try:
-            for message in client.chat_completion(st.session_state.messages, max_tokens=512, stream=True):
+            # Invio della richiesta all'API passandogli il file GGUF specifico
+            for message in client.chat_completion(
+                st.session_state.messages, 
+                max_tokens=512, 
+                stream=True,
+                extra_body={"model_file": model_file} # Dice a Hugging Face quale file prendere dentro la cartella
+            ):
                 token = message.choices.delta.content
                 if token:
                     full_response += token
                     response_placeholder.markdown(full_response)
         except Exception as e:
-            full_response = f"Errore di connessione al modello: {str(e)}"
+            full_response = f"Errore di connessione al modello privato: {str(e)}"
             response_placeholder.error(full_response)
             
     st.session_state.messages.append({"role": "assistant", "content": full_response})
