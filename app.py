@@ -26,7 +26,7 @@ st.caption("Chat protetta caricata localmente in cloud dal tuo modello GGUF.")
 
 # Identificativi del modello privato su Hugging Face
 model_id = "Username97482/Pagl_IA_gguf"
-model_file = "llama-3-8b-Q4_K_M.gguf"
+model_file = "llama-3-8b.Q4_K_M.gguf"
 
 # 1. SCARICAMENTO E CARICAMENTO DEL MODELLO (Eseguito solo la prima volta)
 @st.cache_resource
