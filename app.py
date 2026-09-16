@@ -7,7 +7,7 @@ st.caption("Chat protetta caricata in locale dal tuo modello GGUF.")
 
 # Il tuo modello GGUF originale salvato con successo all'inizio
 model_id = "Username97482/Pagl_IA_gguf"
-model_file = "llama-3-8b-Q4_K_M.gguf"
+model_file = "llama-3-8b.Q4_K_M.gguf"
 
 # 1. CARICAMENTO DEL MODELLO (Eseguito solo al primo avvio della pagina)
 @st.cache_resource
